@@ -10,6 +10,17 @@ const EXTS = [".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".oga", ".opus", 
 let file = null;
 let strength = "medium";
 let urls = [];
+let maxMB = null;
+
+// Ask the server for its upload limit so big files are rejected before uploading.
+fetch("/api/config")
+  .then((r) => r.json())
+  .then((c) => {
+    maxMB = c.max_upload_mb;
+    const hint = document.querySelector(".drop .hint");
+    if (hint) hint.textContent += ` · up to ${maxMB} MB`;
+  })
+  .catch(() => {});
 
 // Some formats (e.g. MKV, AVI, WMA) can't play in the browser: hide the "Original" player then.
 before.addEventListener("error", () => { if (before.src) beforeWrap.hidden = true; });
@@ -24,6 +35,10 @@ function pick(f) {
   const ext = f.name.slice(f.name.lastIndexOf(".")).toLowerCase();
   if (!EXTS.includes(ext)) {
     setStatus("That file type isn't supported. Try MP3, WAV, M4A, MP4 or MOV.", true);
+    return;
+  }
+  if (maxMB && f.size > maxMB * 1024 * 1024) {
+    setStatus(`That file is too large. The limit is ${maxMB} MB.`, true);
     return;
   }
   file = f;

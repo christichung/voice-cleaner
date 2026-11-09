@@ -20,7 +20,7 @@ Everything runs locally on your computer. No audio is sent to any outside servic
 | Audio | `.mp3` `.wav` `.m4a` `.aac` `.flac` `.ogg` `.oga` `.opus` `.wma` `.aif` `.aiff` `.caf` `.amr` |
 | Video | `.mp4` `.m4v` `.mov` `.webm` `.mkv` `.avi` `.3gp` (only the audio track is used) |
 
-Maximum upload size: 500 MB.
+Maximum upload size: 100 MB by default. Change it with the `MAX_UPLOAD_MB` environment variable, for example `MAX_UPLOAD_MB=500 uvicorn app:app`.
 
 ## Requirements
 
@@ -101,13 +101,48 @@ Errors return JSON like `{"detail": "..."}`:
 | Status | Meaning |
 |---|---|
 | 400 | Unsupported file type, unknown strength, or empty file |
-| 413 | File is over 500 MB |
+| 413 | File is over the upload limit |
 | 422 | The file has no audio track |
 | 500 | Processing failed unexpectedly |
 
 ### `GET /api/formats`
 
 Returns the list of accepted file extensions.
+
+### `GET /api/config`
+
+Returns the upload limit and accepted extensions, for example `{"max_upload_mb": 100, "formats": [...]}`.
+
+## Deployment
+
+The app needs about 1–2 GB of memory for PyTorch and the model, so it needs a host that runs containers. Static hosts like Vercel, Netlify and GitHub Pages won't work.
+
+### Hugging Face Spaces (free)
+
+The `deploy/huggingface` folder holds the two files a Space needs:
+
+- `README.md`: Space settings (Docker, port 7860, title and emoji).
+- `Dockerfile`: clones this GitHub repo and builds it. Hugging Face rejects the model's binary file unless it's stored with Git LFS, so the Space pulls the code from GitHub instead of storing a copy.
+
+To set it up:
+
+1. Create a Space at https://huggingface.co/new-space with **Docker** as the SDK and the **Blank** template.
+2. Upload both files from `deploy/huggingface` to the Space, replacing its default `README.md`.
+3. The Space builds automatically, which takes about 5–10 minutes the first time.
+
+To update the Space after pushing new code to GitHub, open the Space's **Settings** and click **Factory rebuild**.
+
+### Any other container host
+
+The root `Dockerfile` works on Render, Railway, Fly.io, Google Cloud Run and similar hosts. Give it at least 2 GB of memory. It listens on port 7860, or on `$PORT` if the host sets it.
+
+```bash
+docker build -t voice-cleaner .
+```
+
+```bash
+docker run -p 7860:7860 voice-cleaner
+```
 
 ## How it works
 
@@ -129,6 +164,9 @@ voice-cleaner/
 ├── app.py               FastAPI server: routes, upload checks, error handling
 ├── cleaner.py           Audio pipeline: decode, denoise, polish, encode
 ├── requirements.txt     Pinned Python dependencies
+├── Dockerfile           Container build for any host
+├── deploy/
+│   └── huggingface/     Space settings and Dockerfile for Hugging Face Spaces
 ├── models/
 │   └── DeepFilterNet3/  Pretrained model weights and config
 └── static/

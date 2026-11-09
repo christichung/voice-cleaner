@@ -1,5 +1,6 @@
 """Voice Cleaner web app. Run with:  uvicorn app:app --reload"""
 
+import os
 from pathlib import Path
 from urllib.parse import quote
 
@@ -10,7 +11,9 @@ from fastapi.staticfiles import StaticFiles
 
 from cleaner import STRENGTH, SUPPORTED_EXTS, DecodeError, clean_audio
 
-MAX_BYTES = 500 * 1024 * 1024  # 500 MB (video files are large)
+# Upload limit in MB. Override with the MAX_UPLOAD_MB environment variable.
+MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "100"))
+MAX_BYTES = MAX_UPLOAD_MB * 1024 * 1024
 STATIC = Path(__file__).parent / "static"
 
 app = FastAPI(title="Voice Cleaner")
@@ -26,6 +29,11 @@ def formats():
     return sorted(SUPPORTED_EXTS)
 
 
+@app.get("/api/config")
+def config():
+    return {"max_upload_mb": MAX_UPLOAD_MB, "formats": sorted(SUPPORTED_EXTS)}
+
+
 @app.post("/api/clean")
 async def clean(file: UploadFile = File(...), strength: str = Form("medium")):
     ext = Path(file.filename or "").suffix.lower()
@@ -38,7 +46,7 @@ async def clean(file: UploadFile = File(...), strength: str = Form("medium")):
     if not data:
         raise HTTPException(400, "The file is empty.")
     if len(data) > MAX_BYTES:
-        raise HTTPException(413, "File is too large (max 500 MB).")
+        raise HTTPException(413, f"File is too large (max {MAX_UPLOAD_MB} MB).")
 
     try:
         cleaned = await run_in_threadpool(clean_audio, data, strength, ext)
