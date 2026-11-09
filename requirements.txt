@@ -1,0 +1,11 @@
+# Requires Python 3.11 (DeepFilterNet has no prebuilt builds for newer Python on Apple Silicon).
+fastapi
+uvicorn[standard]
+python-multipart
+pedalboard
+imageio-ffmpeg
+deepfilternet==0.5.6
+# DeepFilterNet imports a torchaudio module that was removed in torchaudio 2.1+.
+torch==2.0.1
+torchaudio==2.0.2
+numpy<2

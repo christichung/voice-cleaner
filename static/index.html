@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voice Cleaner</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="card">
+    <header>
+      <h1>Voice Cleaner</h1>
+      <p class="sub">Voice cleaner and noise remover.</p>
+    </header>
+
+    <label id="drop" class="drop" for="file">
+      <input id="file" type="file" accept="audio/*,video/*,.mp3,.wav,.m4a,.aac,.flac,.ogg,.opus,.wma,.aif,.aiff,.caf,.amr,.mp4,.m4v,.mov,.webm,.mkv,.avi,.3gp" hidden />
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>
+      <span id="dropText"><strong>Choose a file</strong> or drop it here</span>
+      <span class="hint">MP3, WAV, M4A, FLAC, MP4, MOV and more</span>
+    </label>
+
+    <div class="row">
+      <span class="label">Strength</span>
+      <div class="seg" role="radiogroup" aria-label="Noise removal strength">
+        <button type="button" role="radio" data-v="light" aria-checked="false">Light</button>
+        <button type="button" role="radio" data-v="medium" aria-checked="true">Medium</button>
+        <button type="button" role="radio" data-v="strong" aria-checked="false">Strong</button>
+      </div>
+    </div>
+
+    <button id="go" class="primary" disabled>Clean audio</button>
+    <p id="status" class="status" role="status"></p>
+
+    <section id="result" class="result" hidden>
+      <div id="beforeWrap" class="player">
+        <span class="label">Original</span>
+        <audio id="before" controls></audio>
+      </div>
+      <div class="player">
+        <span class="label">Cleaned</span>
+        <audio id="after" controls></audio>
+      </div>
+      <a id="download" class="primary link" download>Download MP3</a>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

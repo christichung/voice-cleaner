@@ -1,0 +1,10 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# DeepFilterNet writes a log next to the model
+models/**/enhance.log
+
+# macOS
+.DS_Store
